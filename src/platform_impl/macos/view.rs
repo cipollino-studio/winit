@@ -1063,6 +1063,7 @@ impl WinitView {
             device_id: DEVICE_ID,
             position: view_point.to_physical(self.scale_factor()),
         });
+        self.queue_event(WindowEvent::TabletPressure(unsafe { event.pressure() }))
     }
 }
 

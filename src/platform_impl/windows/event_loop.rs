@@ -2040,6 +2040,13 @@ unsafe fn public_window_callback_inner(
                             device_id: DEVICE_ID,
                         }),
                     });
+
+                    if let Some(Force::Normalized(pressure)) = force {
+                        userdata.send_event(Event::WindowEvent {
+                            window_id: RootWindowId(WindowId(window)),
+                            event: WindowEvent::TabletPressure(pressure as f32)
+                        })
+                    }
                 }
 
                 unsafe { SkipPointerFrameMessages(pointer_id) };

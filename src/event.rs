@@ -435,6 +435,9 @@ pub enum WindowEvent {
     /// Winit will aggregate duplicate redraw requests into a single event, to
     /// help avoid duplicating rendering work.
     RedrawRequested,
+
+    // The pressure of a tablet device
+    TabletPressure(f32)
 }
 
 /// Identifier of an input device.

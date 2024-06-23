@@ -453,6 +453,10 @@ impl ApplicationHandler<UserEvent> for Application {
             | WindowEvent::Destroyed
             | WindowEvent::Touch(_)
             | WindowEvent::Moved(_) => (),
+
+            WindowEvent::TabletPressure(pressure) => {
+                println!("{}", pressure);
+            }
         }
     }
 

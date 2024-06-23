@@ -291,7 +291,7 @@ impl Shared {
 
                     x_motion.into_iter().chain(y_motion).chain(iter::once(Event::DeviceEvent {
                         device_id,
-                        event: DeviceEvent::MouseMotion { delta: (delta.x, delta.y) },
+                        event: DeviceEvent:: { delta: (delta.x, delta.y) },
                     }))
                 }));
             }),

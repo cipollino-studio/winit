@@ -33,6 +33,15 @@ impl ApplicationHandler for App {
         }
     }
 
+    fn device_event(
+            &mut self,
+            _event_loop: &dyn ActiveEventLoop,
+            _device_id: Option<winit::event::DeviceId>,
+            event: winit::event::DeviceEvent,
+        ) {
+        println!("{event:?}");
+    }
+
     fn window_event(&mut self, event_loop: &dyn ActiveEventLoop, _: WindowId, event: WindowEvent) {
         println!("{event:?}");
         match event {

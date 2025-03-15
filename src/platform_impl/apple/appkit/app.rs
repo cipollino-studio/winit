@@ -7,7 +7,7 @@ use std::rc::Rc;
 use dispatch2::MainThreadBound;
 use objc2::runtime::{Imp, Sel};
 use objc2::sel;
-use objc2_app_kit::{NSApplication, NSEvent, NSEventModifierFlags, NSEventType};
+use objc2_app_kit::{NSApplication, NSEvent, NSEventModifierFlags, NSEventSubtype, NSEventType};
 use objc2_foundation::MainThreadMarker;
 
 use super::app_state::AppState;
@@ -108,6 +108,13 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
             let delta_x = unsafe { event.deltaX() } as f64;
             let delta_y = unsafe { event.deltaY() } as f64;
 
+            if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
+                let pressure = unsafe { event.pressure() };
+                app_state.maybe_queue_with_handler(move |app, event_loop| {
+                    app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
+                });
+            }
+
             if delta_x != 0.0 || delta_y != 0.0 {
                 app_state.maybe_queue_with_handler(move |app, event_loop| {
                     app.device_event(event_loop, None, DeviceEvent::PointerMotion {
@@ -118,6 +125,14 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
         },
         NSEventType::LeftMouseDown | NSEventType::RightMouseDown | NSEventType::OtherMouseDown => {
             let button = unsafe { event.buttonNumber() } as u32;
+
+            if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
+                let pressure = unsafe { event.pressure() };
+                app_state.maybe_queue_with_handler(move |app, event_loop| {
+                    app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
+                });
+            }
+
             app_state.maybe_queue_with_handler(move |app, event_loop| {
                 app.device_event(event_loop, None, DeviceEvent::Button {
                     button,
@@ -127,6 +142,14 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
         },
         NSEventType::LeftMouseUp | NSEventType::RightMouseUp | NSEventType::OtherMouseUp => {
             let button = unsafe { event.buttonNumber() } as u32;
+
+            if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
+                let pressure = unsafe { event.pressure() };
+                app_state.maybe_queue_with_handler(move |app, event_loop| {
+                    app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
+                });
+            }
+
             app_state.maybe_queue_with_handler(move |app, event_loop| {
                 app.device_event(event_loop, None, DeviceEvent::Button {
                     button,

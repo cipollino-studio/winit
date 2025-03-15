@@ -684,6 +684,8 @@ pub enum DeviceEvent {
         state: ElementState,
     },
 
+    TabletPressure(f32),
+
     Key(RawKeyEvent),
 }
 

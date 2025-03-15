@@ -97,6 +97,17 @@ pub(crate) fn override_send_event(global_app: &NSApplication) {
     ORIGINAL.get(mtm).set(Some(original));
 }
 
+fn send_tablet_pressure_event(app_state: &Rc<AppState>, event: &NSEvent) {
+    let pressure = if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
+        unsafe { event.pressure() }
+    } else {
+        1.0
+    };
+    app_state.maybe_queue_with_handler(move |app, event_loop| {
+        app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
+    });
+}
+
 fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
     let event_type = unsafe { event.r#type() };
     #[allow(non_upper_case_globals)]
@@ -108,12 +119,7 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
             let delta_x = unsafe { event.deltaX() } as f64;
             let delta_y = unsafe { event.deltaY() } as f64;
 
-            if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
-                let pressure = unsafe { event.pressure() };
-                app_state.maybe_queue_with_handler(move |app, event_loop| {
-                    app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
-                });
-            }
+            send_tablet_pressure_event(app_state, event); 
 
             if delta_x != 0.0 || delta_y != 0.0 {
                 app_state.maybe_queue_with_handler(move |app, event_loop| {
@@ -126,12 +132,7 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
         NSEventType::LeftMouseDown | NSEventType::RightMouseDown | NSEventType::OtherMouseDown => {
             let button = unsafe { event.buttonNumber() } as u32;
 
-            if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
-                let pressure = unsafe { event.pressure() };
-                app_state.maybe_queue_with_handler(move |app, event_loop| {
-                    app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
-                });
-            }
+            send_tablet_pressure_event(app_state, event); 
 
             app_state.maybe_queue_with_handler(move |app, event_loop| {
                 app.device_event(event_loop, None, DeviceEvent::Button {
@@ -143,12 +144,7 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
         NSEventType::LeftMouseUp | NSEventType::RightMouseUp | NSEventType::OtherMouseUp => {
             let button = unsafe { event.buttonNumber() } as u32;
 
-            if unsafe { event.subtype() } == NSEventSubtype::TabletPoint {
-                let pressure = unsafe { event.pressure() };
-                app_state.maybe_queue_with_handler(move |app, event_loop| {
-                    app.device_event(event_loop, None, DeviceEvent::TabletPressure(pressure));
-                });
-            }
+            send_tablet_pressure_event(app_state, event); 
 
             app_state.maybe_queue_with_handler(move |app, event_loop| {
                 app.device_event(event_loop, None, DeviceEvent::Button {
@@ -156,6 +152,9 @@ fn maybe_dispatch_device_event(app_state: &Rc<AppState>, event: &NSEvent) {
                     state: ElementState::Released,
                 });
             });
+        },
+        NSEventType::TabletPoint | NSEventType::TabletProximity => {
+            send_tablet_pressure_event(app_state, event); 
         },
         _ => (),
     }
